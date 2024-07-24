@@ -55,7 +55,7 @@ class AnvilSupport(
             ProxyConstants.NMS_VERSION.substring(1) +
             "\$AnvilContainer"
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onAnvilPrepare(event: PrepareAnvilEvent) {
         val player = event.viewers.getOrNull(0) as? Player ?: return
 
@@ -78,9 +78,6 @@ class AnvilSupport(
             val old = left?.clone()
             val right = event.inventory.getItem(1)?.clone()
 
-            event.result = null
-            event.inventory.setItem(2, null)
-
             val result = doMerge(
                 left,
                 right,
@@ -88,16 +85,19 @@ class AnvilSupport(
                 player
             )
 
+            if (result == FAIL) {
+                return@run
+            }
+
+            event.result = null
+            event.inventory.setItem(2, null)
+            
             val price = result.xp ?: 0
             val outItem = result.result ?: ItemStack(Material.AIR)
 
             val oldCost = event.inventory.repairCost
 
             val oldLeft = event.inventory.getItem(0)
-
-            if (result == FAIL) {
-                return@run
-            }
 
             if (oldLeft == null || oldLeft.type != outItem.type) {
                 return@run
